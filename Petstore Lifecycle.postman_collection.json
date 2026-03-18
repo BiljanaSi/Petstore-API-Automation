@@ -1,0 +1,326 @@
+{
+  "info": {
+    "_postman_id": "49ae9625-da7e-4f06-b7ce-6938054a18d8",
+    "name": "Petstore Lifecycle",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "2633273",
+    "_collection_link": "https://go.postman.co/collection/2633273-49ae9625-da7e-4f06-b7ce-6938054a18d8?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Add New Pet",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code | Verify successful pet creation (200 OK)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const contentType = pm.response.headers.get(\"Content-Type\") || \"\";",
+              "const isJson = contentType.includes(\"application/json\");",
+              "",
+              "pm.test(\"Response | Content-Type is JSON\", function () {",
+              "    pm.expect(isJson).to.be.true;",
+              "});",
+              "",
+              "if (isJson) {",
+              "    const jsonData = pm.response.json();",
+              "",
+              "    if (jsonData.id) {",
+              "        pm.environment.set(\"current_pet_id\", jsonData.id);",
+              "        console.log(\"Saved Pet ID: \" + jsonData.id);",
+              "    }",
+              "",
+              "    pm.test(\"Data Integrity | Verify pet name is Bobi\", function () {",
+              "        pm.expect(jsonData.name).to.eql(\"Bobi\");",
+              "    });",
+              "} else {",
+              "    console.warn(\"Non-JSON response received. Content-Type: \" + contentType);",
+              "    console.warn(\"Response body: \" + pm.response.text());",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{user_pet_id}},\n  \"category\": { \"id\": 1, \"name\": \"Dogs\" },\n  \"name\": \"Bobi\",\n  \"photoUrls\": [\"string\"],\n  \"tags\": [{ \"id\": 1, \"name\": \"vaccinated\" }],\n  \"status\": \"available\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/pet",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Pet by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code | Verify pet is found (200 OK)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Data Integrity | ID and Name match the created pet\", function () {",
+              "    pm.expect(jsonData.id.toString()).to.eql(pm.environment.get(\"current_pet_id\").toString());",
+              "    pm.expect(jsonData.name).to.eql(\"Bobi\");",
+              "});",
+              "",
+              "pm.test(\"Format | Response has category and tags\", function () {",
+              "    pm.expect(jsonData).to.have.property('category');",
+              "    pm.expect(jsonData.tags).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{user_pet_id}},\n  \"category\": { \"id\": 1, \"name\": \"Dogs\" },\n  \"name\": \"Bobi\",\n  \"photoUrls\": [\"string\"],\n  \"tags\": [{ \"id\": 1, \"name\": \"vaccinated\" }],\n  \"status\": \"available\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/pet/{{current_pet_id}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "{{current_pet_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Pet Status (Sell)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code | Verify successful update (200 OK)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Business Logic | Status changed to 'sold'\", function () {",
+              "    pm.expect(jsonData.status).to.eql(\"sold\");",
+              "});",
+              "",
+              "pm.test(\"Data Integrity | ID remains the same\", function () {",
+              "    pm.expect(jsonData.id.toString()).to.eql(pm.environment.get(\"current_pet_id\").toString());",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{current_pet_id}},\n  \"name\": \"Bobi\",\n  \"category\": { \"id\": 1, \"name\": \"Dogs\" },\n  \"photoUrls\": [\"https://example.com/bobi.jpg\"],\n  \"tags\": [{\"id\": 1, \"name\": \"vaccinated\"}],\n  \"status\": \"sold\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/pet/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Find Pets by Status (Sold)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code | Verify successful retrieval (200 OK)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Format | Response is an array of pets\", function () {",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "",
+              "pm.test(\"Search Logic | Our Pet ID exists in the 'sold' list\", function () {",
+              "    const targetId = pm.environment.get(\"current_pet_id\").toString();",
+              "    ",
+              "   ",
+              "    const found = jsonData.some(pet => pet.id.toString() === targetId);",
+              "    ",
+              "    pm.expect(found).to.be.true;",
+              "});",
+              "",
+              "",
+              "pm.test(\"Filter Integrity | All pets in response must have 'sold' status\", function () {",
+              "    jsonData.forEach(function(pet) {",
+              "        pm.expect(pet.status).to.eql(\"sold\");",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/pet/findByStatus?status=sold",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "findByStatus"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "sold"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Pet by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code | Verify successful deletion (200 OK)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Response | Message contains the deleted Pet ID\", function () {",
+              "    pm.expect(jsonData.message).to.eql(pm.environment.get(\"current_pet_id\").toString());",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "api_key",
+            "value": "special-key",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{current_pet_id}},\n  \"name\": \"Bobi\",\n  \"category\": { \"id\": 1, \"name\": \"Dogs\" },\n  \"photoUrls\": [\"https://example.com/bobi.jpg\"],\n  \"tags\": [{\"id\": 1, \"name\": \"vaccinated\"}],\n  \"status\": \"sold\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/pet/{{current_pet_id}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "{{current_pet_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify Pet is Deleted",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Security & Cleanup | Verify pet is no longer in database (404 Not Found)\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Error Message | Verify 'Pet not found' message\", function () {",
+              "    pm.expect(jsonData.message).to.eql(\"Pet not found\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/pet/{{current_pet_id}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "{{current_pet_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
